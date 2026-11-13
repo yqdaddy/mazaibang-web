@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="500" viewBox="0 0 1440 500">
+  <defs>
+    <linearGradient id="warmBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFAF4"/>
+      <stop offset="50%" stop-color="#FEF5EC"/>
+      <stop offset="100%" stop-color="#FFF0E5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1440" height="500" fill="url(#warmBg)"/>
+
+  <!-- ===== 左侧区域 ===== -->
+  <circle cx="50" cy="60" r="90" fill="#FBE7DE" opacity="0.6"/>
+  <circle cx="120" cy="140" r="60" fill="#FBE7DE" opacity="0.4"/>
+  <path d="M80 320 C80 290, 125 260, 175 310 C225 360, 225 430, 80 520 C-65 430, -65 360, -15 310 C35 260, 80 290, 80 320" fill="#E06A45" opacity="0.12"/>
+  <ellipse cx="180" cy="380" rx="22" ry="35" fill="#E06A45" opacity="0.1"/>
+  <circle cx="155" cy="330" r="10" fill="#E06A45" opacity="0.08"/>
+  <circle cx="175" cy="322" r="9" fill="#E06A45" opacity="0.08"/>
+  <circle cx="195" cy="328" r="8" fill="#E06A45" opacity="0.08"/>
+  <circle cx="210" cy="340" r="7" fill="#E06A45" opacity="0.08"/>
+  <path d="M60 420 Q60 380, 100 380 L160 380 Q200 380, 200 420 L200 470 Q200 510, 160 510 L130 510 L110 540 L120 510 L100 510 Q60 510, 60 470 Z" fill="#FBE7DE" opacity="0.5"/>
+
+  <!-- ===== 中间区域 - 增强装饰 ===== -->
+
+  <!-- 中间偏左的装饰带 -->
+  <circle cx="280" cy="80" r="50" fill="#FBE7DE" opacity="0.45"/>
+  <circle cx="350" cy="150" r="35" fill="#FBE7DE" opacity="0.35"/>
+
+  <!-- 中间装饰组 1 -->
+  <circle cx="420" cy="60" r="28" fill="#E06A45" opacity="0.06"/>
+  <circle cx="480" cy="120" r="40" fill="#FBE7DE" opacity="0.4"/>
+  <circle cx="520" cy="200" r="25" fill="#E06A45" opacity="0.05"/>
+
+  <!-- 中间小星星组 -->
+  <polygon points="380,180 385,165 402,165 390,155 395,140 380,150 365,140 370,155 358,165 375,165" fill="#E06A45" opacity="0.12"/>
+  <polygon points="500,280 504,268 518,268 508,260 512,248 500,256 488,248 492,260 482,268 496,268" fill="#E06A45" opacity="0.1"/>
+
+  <!-- 中间小脚丫 -->
+  <ellipse cx="450" cy="350" rx="18" ry="28" fill="#E06A45" opacity="0.08"/>
+  <circle cx="430" cy="305" r="8" fill="#E06A45" opacity="0.06"/>
+  <circle cx="448" cy="298" r="7" fill="#E06A45" opacity="0.06"/>
+  <circle cx="465" cy="303" r="6" fill="#E06A45" opacity="0.06"/>
+  <circle cx="478" cy="312" r="5" fill="#E06A45" opacity="0.06"/>
+
+  <!-- 中间小心形 -->
+  <path d="M520 380 C520 368, 538 355, 555 370 C572 385, 572 405, 520 435 C468 405, 468 385, 485 370 C502 355, 520 368, 520 380" fill="#E06A45" opacity="0.08"/>
+
+  <!-- 中间装饰组 2 -->
+  <circle cx="580" cy="100" r="30" fill="#FBE7DE" opacity="0.35"/>
+  <circle cx="620" cy="250" r="45" fill="#FBE7DE" opacity="0.3"/>
+  <circle cx="560" cy="320" r="20" fill="#E06A45" opacity="0.05"/>
+
+  <!-- 中间小气泡 -->
+  <path d="M600 380 Q600 350, 630 350 L680 350 Q710 350, 710 380 L710 420 Q710 450, 680 450 L660 450 L645 475 L655 450 L630 450 Q600 450, 600 420 Z" fill="#FBE7DE" opacity="0.35"/>
+
+  <!-- 散点装饰 -->
+  <circle cx="320" cy="250" r="6" fill="#E06A45" opacity="0.1"/>
+  <circle cx="400" cy="280" r="5" fill="#E06A45" opacity="0.08"/>
+  <circle cx="480" cy="150" r="4" fill="#E06A45" opacity="0.1"/>
+  <circle cx="550" cy="180" r="5" fill="#E06A45" opacity="0.08"/>
+  <circle cx="350" cy="420" r="4" fill="#E06A45" opacity="0.08"/>
+  <circle cx="640" cy="150" r="4" fill="#E06A45" opacity="0.06"/>
+
+  <!-- ===== 右侧区域（图片背后）===== -->
+  <circle cx="1050" cy="350" r="200" fill="#FBE7DE" opacity="0.35"/>
+  <circle cx="1250" cy="80" r="150" fill="#FBE7DE" opacity="0.25"/>
+  <circle cx="1350" cy="400" r="120" fill="#FBE7DE" opacity="0.2"/>
+  <circle cx="900" cy="100" r="30" fill="#E06A45" opacity="0.06"/>
+  <circle cx="950" cy="450" r="25" fill="#E06A45" opacity="0.05"/>
+  <polygon points="1000,200 1006,180 1028,180 1012,168 1018,148 1000,160 982,148 988,168 972,180 994,180" fill="#E06A45" opacity="0.08"/>
+</svg>
