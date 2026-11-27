@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>页面走丢了 - 孖仔帮</title>
+  <meta name="robots" content="noindex">
+  <!-- 样式先按根部署形态声明；站点根探测（见页尾脚本）发现子路径宿主时改写 href。
+       404 页可能被服务在任意深度的未知路径下，静态层写不出同时正确两个宿主的相对引用 -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body class="nf-page">
+  <!-- 脚印图标：Iconify mdi:foot-print，源文件 docs/icons/foot-print.svg（与 themes/zaibang/scripts/icons.js 白名单同源，勿手改 path） -->
+  <div class="nf-icon-badge" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M16 2a2 2 0 1 1-2 2a2 2 0 0 1 2-2m-3.96 1a1.5 1.5 0 1 1-1.5 1.5a1.5 1.5 0 0 1 1.5-1.5M9.09 4.5a1 1 0 1 1-1 1a1 1 0 0 1 1-1M7.04 6a1 1 0 1 1-1 1a1 1 0 0 1 1-1m7.49 6A2.5 2.5 0 0 0 17 9.24A2.6 2.6 0 0 0 14.39 7h-2.48a6 6 0 0 0-5.79 4.4a2 2 0 0 0 .11 1.4a6.8 6.8 0 0 1 .68 2.96a6.9 6.9 0 0 1-.69 2.79a1.92 1.92 0 0 0 .08 1.76a3.62 3.62 0 0 0 3.89 1.6a3.5 3.5 0 0 0 2.17-5.28a2.8 2.8 0 0 1-.45-1.63s-.23-3 2.62-3"/></svg></div>
+  <h1 class="nf-title">哎呀，页面走丢了</h1>
+  <p class="nf-desc">您要找的内容可能换了地方，或者暂时不在家。</p>
+  <p class="nf-timer" role="timer" aria-live="off" data-redirect-url="/"><span class="nf-timer__num" data-countdown></span><span class="nf-timer__suffix"></span></p>
+  <div class="nf-actions">
+    <a class="btn btn--secondary nf-btn" href="/" data-nf-home><svg class="btn__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z"/></svg>回首页</a>
+    <a class="nf-link" href="/posts/" data-nf-posts>全部文章<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M4 11v2h12l-5.5 5.5l1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5L16 11z"/></svg></a>
+  </div>
+  <script>
+    (function () {
+      'use strict';
+      /* ---------- URL 跳转逻辑（优先于 404 兜底） ----------
+       * 检测旧 URL 模式并跳转到新 URL，支持：
+       * 1. archives 文章跳转（14 条无 finalPath 的文章）
+       * 2. WordPress ?p= 参数跳转（378 条）
+       * 3. 标签页跳转（/archives/tag/... → /tags/）
+       * 4. 分类页跳转（/archives/category/... → /categories/）
+       * 5. 分页跳转（/page/N/ → /posts/page/N/）
+       * 6. 年份归档跳转（/archives/YYYY/ → /posts/）
+       * 7. archives 根路径（/archives/ → /posts/）
+       * 8. WordPress 标签路径（/tag/... → /tags/）
+       * 9. WordPress 分类路径（/category/... → /categories/）
+       * 10. 作者页（/author/... → /about/）
+       * 11. RSS 订阅（/feed/ 或 /rss/ → /rss2.xml）
+       * 12. WordPress 后台路径（/wp-* → 首页）
+       */
+
+      var currentPath = window.location.pathname;
+      var currentSearch = window.location.search;
+
+      // 跳转映射表（从 redirect-mappings.json 生成）
+      var articleMappings = {
+        "/archives/16.html": "/posts/",
+        "/archives/37.html": "/posts/",
+        "/archives/103.html": "/posts/",
+        "/archives/182.html": "/posts/",
+        "/archives/187.html": "/posts/",
+        "/archives/222.html": "/posts/",
+        "/archives/514.html": "/posts/",
+        "/archives/3592.html": "/posts/",
+        "/archives/19663.html": "/posts/",
+        "/archives/21094.html": "/posts/",
+        "/archives/21368.html": "/posts/",
+        "/archives/22386.html": "/posts/",
+        "/archives/22852.html": "/posts/",
+        "/archives/22896.html": "/posts/"
+      };
+
+      // WordPress 参数跳转映射（部分示例，完整列表见 redirect-mappings.json）
+      var wordpressParamMappings = {
+        "25": "/archives/25.html",
+        "43": "/archives/43.html",
+        "45": "/archives/45.html",
+        "57": "/archives/57.html",
+        "61": "/archives/61.html",
+        "63": "/archives/63.html",
+        "65": "/archives/65.html",
+        "67": "/archives/67.html",
+        "69": "/archives/69.html",
+        "75": "/archives/75.html",
+        "78": "/archives/78.html",
+        "80": "/archives/80.html",
+        "84": "/archives/84.html",
+        "209": "/archives/209.html",
+        "213": "/archives/213.html",
+        "218": "/archives/218.html",
+        "228": "/archives/228.html",
+        "237": "/archives/237.html",
+        "241": "/archives/241.html",
+        "246": "/archives/246.html",
+        "254": "/archives/254.html",
+        "274": "/archives/274.html",
+        "329": "/archives/329.html",
+        "338": "/archives/338.html",
+        "362": "/archives/362.html",
+        "369": "/archives/369.html",
+        "379": "/archives/379.html",
+        "382": "/archives/382.html",
+        "385": "/archives/385.html",
+        "388": "/archives/388.html",
+        "393": "/archives/393.html",
+        "399": "/archives/399.html",
+        "407": "/archives/407.html",
+        "410": "/archives/410.html",
+        "414": "/archives/414.html",
+        "417": "/archives/417.html",
+        "423": "/archives/423.html",
+        "432": "/archives/432.html",
+        "438": "/archives/438.html",
+        "441": "/archives/441.html",
+        "446": "/archives/446.html",
+        "450": "/archives/450.html",
+        "453": "/archives/453.html",
+        "458": "/archives/458.html",
+        "463": "/archives/463.html",
+        "466": "/archives/466.html",
+        "470": "/archives/470.html",
+        "474": "/archives/474.html",
+        "478": "/archives/478.html",
+        "481": "/archives/481.html",
+        "484": "/archives/484.html",
+        "495": "/archives/495.html",
+        "498": "/archives/498.html",
+        "505": "/archives/505.html",
+        "508": "/archives/508.html",
+        "517": "/archives/517.html",
+        "523": "/archives/523.html",
+        "530": "/archives/530.html",
+        "535": "/archives/535.html",
+        "538": "/archives/538.html",
+        "542": "/archives/542.html",
+        "546": "/archives/546.html",
+        "557": "/archives/557.html",
+        "603": "/archives/603.html",
+        "681": "/archives/681.html",
+        "692": "/archives/692.html",
+        "737": "/archives/737.html",
+        "785": "/archives/785.html",
+        "841": "/archives/841.html",
+        "848": "/archives/848.html",
+        "2224": "/archives/2224.html",
+        "2796": "/archives/2796.html",
+        "2952": "/archives/2952.html",
+        "2963": "/archives/2963.html",
+        "3060": "/archives/3060.html",
+        "3131": "/archives/3131.html",
+        "3170": "/archives/3170.html",
+        "3354": "/archives/3354.html",
+        "3421": "/archives/3421.html",
+        "3440": "/archives/3440.html",
+        "3551": "/archives/3551.html",
+        "3678": "/archives/3678.html",
+        "3704": "/archives/3704.html",
+        "3729": "/archives/3729.html",
+        "3810": "/archives/3810.html",
+        "3862": "/archives/3862.html",
+        "3930": "/archives/3930.html",
+        "3961": "/archives/3961.html",
+        "4042": "/archives/4042.html",
+        "4080": "/archives/4080.html",
+        "4112": "/archives/4112.html",
+        "4161": "/archives/4161.html",
+        "4295": "/archives/4295.html",
+        "4369": "/archives/4369.html",
+        "4489": "/archives/4489.html",
+        "4565": "/archives/4565.html",
+        "4646": "/archives/4646.html",
+        "4703": "/archives/4703.html",
+        "4743": "/archives/4743.html",
+        "4782": "/archives/4782.html",
+        "4788": "/archives/4788.html",
+        "4792": "/archives/4792.html",
+        "5043": "/archives/5043.html",
+        "5117": "/archives/5117.html",
+        "5195": "/archives/5195.html",
+        "5244": "/archives/5244.html",
+        "5247": "/archives/5247.html",
+        "5421": "/archives/5421.html",
+        "5596": "/archives/5596.html",
+        "6332": "/archives/6332.html",
+        "6542": "/archives/6542.html",
+        "6911": "/archives/6911.html",
+        "7121": "/archives/7121.html",
+        "7367": "/archives/7367.html",
+        "7548": "/archives/7548.html",
+        "7880": "/archives/7880.html",
+        "8190": "/archives/8190.html",
+        "8537": "/archives/8537.html",
+        "8789": "/archives/8789.html",
+        "9049": "/archives/9049.html",
+        "9278": "/archives/9278.html",
+        "9424": "/archives/9424.html",
+        "9719": "/archives/9719.html",
+        "10025": "/archives/10025.html",
+        "10520": "/archives/10520.html",
+        "10604": "/archives/10604.html",
+        "10719": "/archives/10719.html",
+        "10985": "/archives/10985.html",
+        "11087": "/archives/11087.html",
+        "11224": "/archives/11224.html",
+        "11427": "/archives/11427.html",
+        "11809": "/archives/11809.html",
+        "11930": "/archives/11930.html",
+        "11999": "/archives/11999.html",
+        "12169": "/archives/12169.html",
+        "12252": "/archives/12252.html",
+        "14947": "/archives/14947.html",
+        "15003": "/archives/15003.html",
+        "15151": "/archives/15151.html",
+        "15209": "/archives/15209.html",
+        "15267": "/archives/15267.html",
+        "15361": "/archives/15361.html",
+        "15461": "/archives/15461.html",
+        "15553": "/archives/15553.html",
+        "15639": "/archives/15639.html",
+        "15721": "/archives/15721.html",
+        "15816": "/archives/15816.html",
+        "15899": "/archives/15899.html",
+        "15965": "/archives/15965.html",
+        "16086": "/archives/16086.html",
+        "16179": "/archives/16179.html",
+        "16271": "/archives/16271.html",
+        "16443": "/archives/16443.html",
+        "16553": "/archives/16553.html",
+        "16605": "/archives/16605.html",
+        "16747": "/archives/16747.html",
+        "16839": "/archives/16839.html",
+        "17151": "/archives/17151.html",
+        "17321": "/archives/17321.html",
+        "17442": "/archives/17442.html",
+        "17590": "/archives/17590.html",
+        "17615": "/archives/17615.html",
+        "17648": "/archives/17648.html",
+        "17670": "/archives/17670.html",
+        "17686": "/archives/17686.html",
+        "17691": "/archives/17691.html",
+        "17718": "/archives/17718.html",
+        "17753": "/archives/17753.html",
+        "17803": "/archives/17803.html",
+        "17902": "/archives/17902.html",
+        "17929": "/archives/17929.html",
+        "17952": "/archives/17952.html",
+        "17956": "/archives/17956.html",
+        "17974": "/archives/17974.html",
+        "18018": "/archives/18018.html",
+        "18026": "/archives/18026.html",
+        "18041": "/archives/18041.html",
+        "18120": "/archives/18120.html",
+        "18170": "/archives/18170.html",
+        "18269": "/archives/18269.html",
+        "18275": "/archives/18275.html",
+        "18283": "/archives/18283.html",
+        "18294": "/archives/18294.html",
+        "18300": "/archives/18300.html",
+        "18327": "/archives/18327.html",
+        "18350": "/archives/18350.html",
+        "18352": "/archives/18352.html",
+        "18402": "/archives/18402.html",
+        "18408": "/archives/18408.html",
+        "18419": "/archives/18419.html",
+        "18434": "/archives/18434.html",
+        "18440": "/archives/18440.html",
+        "18463": "/archives/18463.html",
+        "18507": "/archives/18507.html",
+        "18524": "/archives/18524.html",
+        "18547": "/archives/18547.html",
+        "18557": "/archives/18557.html",
+        "18573": "/archives/18573.html",
+        "18598": "/archives/18598.html",
+        "18622": "/archives/18622.html",
+        "18648": "/archives/18648.html",
+        "18663": "/archives/18663.html",
+        "18706": "/archives/18706.html",
+        "18730": "/archives/18730.html",
+        "18781": "/archives/18781.html",
+        "18822": "/archives/18822.html",
+        "18836": "/archives/18836.html",
+        "18868": "/archives/18868.html",
+        "18889": "/archives/18889.html",
+        "18911": "/archives/18911.html",
+        "18927": "/archives/18927.html",
+        "18936": "/archives/18936.html",
+        "18953": "/archives/18953.html",
+        "18976": "/archives/18976.html",
+        "18994": "/archives/18994.html",
+        "19005": "/archives/19005.html",
+        "19016": "/archives/19016.html",
+        "19043": "/archives/19043.html",
+        "19071": "/archives/19071.html",
+        "19097": "/archives/19097.html",
+        "19099": "/archives/19099.html",
+        "19113": "/archives/19113.html",
+        "19144": "/archives/19144.html",
+        "19146": "/archives/19146.html",
+        "19169": "/archives/19169.html",
+        "19185": "/archives/19185.html",
+        "19195": "/archives/19195.html",
+        "19211": "/archives/19211.html",
+        "19229": "/archives/19229.html",
+        "19241": "/archives/19241.html",
+        "19260": "/archives/19260.html",
+        "19281": "/archives/19281.html",
+        "19303": "/archives/19303.html",
+        "19354": "/archives/19354.html",
+        "19372": "/archives/19372.html",
+        "19401": "/archives/19401.html",
+        "19433": "/archives/19433.html",
+        "19452": "/archives/19452.html",
+        "19472": "/archives/19472.html",
+        "19490": "/archives/19490.html",
+        "19511": "/archives/19511.html",
+        "19528": "/archives/19528.html",
+        "19553": "/archives/19553.html",
+        "19565": "/archives/19565.html",
+        "19602": "/archives/19602.html",
+        "19613": "/archives/19613.html",
+        "19625": "/archives/19625.html",
+        "19645": "/archives/19645.html",
+        "19666": "/archives/19666.html",
+        "19676": "/archives/19676.html",
+        "19703": "/archives/19703.html",
+        "19724": "/archives/19724.html",
+        "19741": "/archives/19741.html",
+        "19748": "/archives/19748.html",
+        "19778": "/archives/19778.html",
+        "19789": "/archives/19789.html",
+        "19809": "/archives/19809.html",
+        "19830": "/archives/19830.html",
+        "19852": "/archives/19852.html",
+        "19912": "/archives/19912.html",
+        "19998": "/archives/19998.html",
+        "20027": "/archives/20027.html",
+        "20044": "/archives/20044.html",
+        "20073": "/archives/20073.html",
+        "20094": "/archives/20094.html",
+        "20169": "/archives/20169.html",
+        "20205": "/archives/20205.html",
+        "20216": "/archives/20216.html",
+        "20264": "/archives/20264.html",
+        "20286": "/archives/20286.html",
+        "20322": "/archives/20322.html",
+        "20384": "/archives/20384.html",
+        "20453": "/archives/20453.html",
+        "20487": "/archives/20487.html",
+        "20556": "/archives/20556.html",
+        "20604": "/archives/20604.html",
+        "20699": "/archives/20699.html",
+        "20721": "/archives/20721.html",
+        "20739": "/archives/20739.html",
+        "20810": "/archives/20810.html",
+        "20833": "/archives/20833.html",
+        "20893": "/archives/20893.html",
+        "20920": "/archives/20920.html",
+        "20996": "/archives/20996.html",
+        "21061": "/archives/21061.html",
+        "21118": "/archives/21118.html",
+        "21135": "/archives/21135.html",
+        "21242": "/archives/21242.html",
+        "21264": "/archives/21264.html",
+        "21295": "/archives/21295.html",
+        "21352": "/archives/21352.html",
+        "21368": "/posts/p352/",
+        "21399": "/archives/21399.html",
+        "21426": "/archives/21426.html",
+        "21440": "/archives/21440.html",
+        "21484": "/archives/21484.html",
+        "21510": "/archives/21510.html",
+        "21543": "/archives/21543.html",
+        "21571": "/archives/21571.html",
+        "21604": "/archives/21604.html",
+        "21678": "/archives/21678.html",
+        "21701": "/archives/21701.html",
+        "21728": "/archives/21728.html",
+        "21753": "/archives/21753.html",
+        "21789": "/archives/21789.html",
+        "21822": "/archives/21822.html",
+        "21847": "/archives/21847.html",
+        "21865": "/archives/21865.html",
+        "21906": "/archives/21906.html",
+        "21939": "/archives/21939.html",
+        "21986": "/archives/21986.html",
+        "22010": "/archives/22010.html",
+        "22043": "/archives/22043.html",
+        "22057": "/archives/22057.html",
+        "22081": "/archives/22081.html",
+        "22119": "/archives/22119.html",
+        "22163": "/archives/22163.html",
+        "22188": "/archives/22188.html",
+        "22212": "/archives/22212.html",
+        "22239": "/archives/22239.html",
+        "22266": "/archives/22266.html",
+        "22301": "/archives/22301.html",
+        "22340": "/archives/22340.html",
+        "22405": "/archives/22405.html",
+        "22428": "/archives/22428.html",
+        "22458": "/archives/22458.html",
+        "22503": "/archives/22503.html",
+        "22526": "/archives/22526.html",
+        "22538": "/archives/22538.html",
+        "22554": "/archives/22554.html",
+        "22563": "/archives/22563.html",
+        "22586": "/archives/22586.html",
+        "22600": "/archives/22600.html",
+        "22630": "/archives/22630.html",
+        "22652": "/archives/22652.html",
+        "22674": "/archives/22674.html",
+        "22692": "/archives/22692.html",
+        "22716": "/archives/22716.html",
+        "22719": "/archives/22719.html",
+        "22752": "/archives/22752.html",
+        "22767": "/archives/22767.html",
+        "22789": "/archives/22789.html",
+        "22803": "/archives/22803.html",
+        "22831": "/archives/22831.html",
+        "22865": "/archives/22865.html",
+        "22880": "/archives/22880.html",
+        "22984": "/archives/22984.html",
+        "22993": "/archives/22993.html",
+        "22997": "/archives/22997.html",
+        "23017": "/archives/23017.html",
+        "23025": "/archives/23025.html",
+        "23037": "/archives/23037.html",
+        "23043": "/archives/23043.html",
+        "23057": "/archives/23057.html",
+        "23080": "/archives/23080.html",
+        "23105": "/archives/23105.html",
+        "23125": "/archives/23125.html",
+        "23138": "/archives/23138.html",
+        "23153": "/archives/23153.html",
+        "23160": "/archives/23160.html",
+        "23212": "/archives/23212.html",
+        "23235": "/archives/23235.html",
+        "23262": "/archives/23262.html",
+        "23280": "/archives/23280.html",
+        "23298": "/archives/23298.html",
+        "23310": "/archives/23310.html",
+        "23355": "/archives/23355.html",
+        "23377": "/archives/23377.html",
+        "23385": "/archives/23385.html",
+        "23403": "/archives/23403.html",
+        "23430": "/archives/23430.html",
+        "23445": "/archives/23445.html",
+        "23484": "/archives/23484.html",
+        "23509": "/archives/23509.html",
+        "23516": "/archives/23516.html",
+        "23530": "/archives/23530.html",
+        "23537": "/archives/23537.html",
+        "23545": "/archives/23545.html"
+      };
+
+      // 1. 检查文章跳转
+      if (articleMappings[currentPath]) {
+        window.location.replace(articleMappings[currentPath]);
+        return;
+      }
+
+      // 2. 检查 WordPress 参数跳转
+      var match = currentSearch.match(/[?&]p=(\d+)/);
+      if (match && wordpressParamMappings[match[1]]) {
+        window.location.replace(wordpressParamMappings[match[1]]);
+        return;
+      }
+
+      // 3. 标签页跳转：/archives/tag/... → /tags/...
+      if (currentPath.indexOf('/archives/tag/') === 0) {
+        // WordPress 标签格式：/archives/tag/双胎科普 → /tags/双胎科普/
+        // 但新站标签使用 slug，需要映射
+        var tagSlug = currentPath.replace('/archives/tag/', '').replace(/\/$/, '');
+        window.location.replace('/tags/');
+        return;
+      }
+
+      // 4. 分类页跳转：/archives/category/... → /categories/
+      if (currentPath.indexOf('/archives/category/') === 0) {
+        window.location.replace('/categories/');
+        return;
+      }
+
+      // 5. 分页跳转：/page/N/ → /posts/page/N/（第 1 页跳到 /posts/）
+      match = currentPath.match(/^\/page\/(\d+)\/?$/);
+      if (match) {
+        var pageNum = parseInt(match[1], 10);
+        if (pageNum === 1) {
+          window.location.replace('/posts/');
+        } else {
+          window.location.replace('/posts/page/' + pageNum + '/');
+        }
+        return;
+      }
+
+      // 6. 年份归档跳转：/archives/YYYY/ → /posts/
+      match = currentPath.match(/^\/archives\/(\d{4})\/?$/);
+      if (match) {
+        window.location.replace('/posts/');
+        return;
+      }
+
+      // 7. archives 根路径跳转：/archives/ → /posts/
+      if (currentPath === '/archives/' || currentPath === '/archives') {
+        window.location.replace('/posts/');
+        return;
+      }
+
+      // 8. WordPress 标签路径：/tag/... → /tags/
+      if (currentPath.indexOf('/tag/') === 0) {
+        window.location.replace('/tags/');
+        return;
+      }
+
+      // 9. WordPress 分类路径：/category/... → /categories/
+      if (currentPath.indexOf('/category/') === 0) {
+        window.location.replace('/categories/');
+        return;
+      }
+
+      // 10. 作者页：/author/... → /about/
+      if (currentPath.indexOf('/author/') === 0) {
+        window.location.replace('/about/');
+        return;
+      }
+
+      // 11. RSS 订阅：/feed/ 或 /rss/ → /rss2.xml
+      if (currentPath === '/feed/' || currentPath === '/feed' || currentPath === '/rss/' || currentPath === '/rss') {
+        window.location.replace('/rss2.xml');
+        return;
+      }
+
+      // 12. WordPress 后台相关路径：跳首页
+      if (currentPath.indexOf('/wp-admin') === 0 || currentPath.indexOf('/wp-content') === 0 || currentPath.indexOf('/wp-json') === 0 || currentPath.indexOf('/wp-includes') === 0) {
+        window.location.replace('/');
+        return;
+      }
+
+      /* ---------- 原有 404 逻辑 ----------
+       * 如果没有匹配到跳转规则，执行原有的 404 兜底逻辑
+       */
+      var timer = document.querySelector('[data-redirect-url]');
+      var linkHome = document.querySelector('[data-nf-home]');
+      var linkPosts = document.querySelector('[data-nf-posts]');
+      var stylesheet = document.querySelector('link[rel="stylesheet"]');
+
+      /* ---------- 站点根探测（双宿主契约） ----------
+       * 404 页会被静态托管服务在任意深度的未知路径下（404.html 内容 + 真 404 状态码），
+       * 「回首页」必须落到宿主站点根：根部署（sgguy.com）为 /，GitHub Pages 项目页
+       * 部署（yqdaddy.github.io/mazaibang-web/）为 /mazaibang-web/。
+       * 探测：逐级 fetch .nojekyll（Hexo 部署到 GitHub Pages 必带、大小 0，纯静态哨兵，
+       * 同源请求无 CORS 问题）；候选从根开始逐级加深，正式域名一级即中；
+       * GitHub Pages 对不存在路径返回真 404 状态码，不会误报 ok。
+       * 全部候选失败（如自建托管未带 .nojekyll）回退根部署形态 /。 */
+      var probeCandidates = (function () {
+        var parts = window.location.pathname.split('/').filter(Boolean);
+        var list = ['/'];
+        for (var i = 0; i < parts.length; i++) {
+          list.push('/' + parts.slice(0, i + 1).join('/') + '/');
+        }
+        return list;
+      })();
+
+      function fetchOk(url) {
+        var controller = typeof AbortController === 'function' ? new AbortController() : null;
+        // 单候选 1.2s 超时：两候选链最坏 2.4s，落在重定向 cap（~5.5s）内不会静默降级到错误落点
+        var timerId = controller ? setTimeout(function () { controller.abort(); }, 1200) : null;
+        return fetch(url, { credentials: 'same-origin', signal: controller ? controller.signal : undefined })
+          .then(function (res) { return res.ok; })
+          .catch(function () { return false; })
+          .then(function (ok) {
+            if (timerId) clearTimeout(timerId);
+            return ok;
+          });
+      }
+
+      var siteRootPromise = (function () {
+        var index = 0;
+        function next() {
+          if (index >= probeCandidates.length) return Promise.resolve('/');
+          var candidate = probeCandidates[index++];
+          return fetchOk(candidate + '.nojekyll').then(function (ok) {
+            return ok ? candidate : next();
+          });
+        }
+        return next();
+      })();
+
+      function capByMs(promise, ms, fallbackValue) {
+        return new Promise(function (resolve) {
+          var done = false;
+          promise.then(function (v) { if (!done) { done = true; resolve(v); } });
+          setTimeout(function () { if (!done) { done = true; resolve(fallbackValue); } }, ms);
+        });
+      }
+
+      /* 探测落定为子路径宿主时，把静态层（根部署形态）引用升级到真实站点根；
+         根部署（'/'）时一切保持静态初值，零额外改动 */
+      function applySiteRoot(root) {
+        if (!root || root === '/') return;
+        if (timer) timer.setAttribute('data-redirect-url', root);
+        if (linkHome) linkHome.setAttribute('href', root);
+        if (linkPosts) linkPosts.setAttribute('href', root + 'posts/');
+        if (stylesheet) stylesheet.setAttribute('href', root + 'css/style.css');
+      }
+      siteRootPromise.then(applySiteRoot);
+
+      /* ---------- 4 秒倒计时跳转（保留 ?redirect=0 测试钩子） ---------- */
+      var num = document.querySelector('[data-countdown]');
+      var suffix = document.querySelector('.nf-timer__suffix');
+      var left = 4;
+      function render() {
+        if (num) num.textContent = String(left);
+        if (suffix) suffix.textContent = ' 秒后自动回首页';
+      }
+      render();
+      // E2E 与人工检查用测试钩子：?redirect=0 停用自动跳转（文案仍填充）
+      if (new URLSearchParams(window.location.search).get('redirect') === '0') return;
+      var t = setInterval(function () {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(t);
+          // 跳转目标等待探测结果；探测链异常时 1.5s 上限后回退根部署形态
+          capByMs(siteRootPromise, 1500, '/').then(function (root) {
+            window.location.replace(root);
+          });
+          return;
+        }
+        render();
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>
